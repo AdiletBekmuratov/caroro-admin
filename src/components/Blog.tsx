@@ -30,7 +30,7 @@ export type Person = {
   state: string;
 };
 
-const Companies = () => {
+const Blog = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState<Person[]>(() => data);
   const [validationErrors, setValidationErrors] = useState<{
@@ -200,7 +200,7 @@ const Companies = () => {
             onClick={() => setCreateModalOpen(true)}
             variant="contained"
           >
-            Create New Company
+            Create New Blog
           </Button>
         )}
       />
@@ -286,4 +286,4 @@ const validateEmail = (email: string) =>
     );
 const validateAge = (age: number) => age >= 18 && age <= 50;
 
-export default Companies;
+export default Blog;

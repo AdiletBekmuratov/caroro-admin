@@ -200,7 +200,7 @@ const Companies = () => {
             onClick={() => setCreateModalOpen(true)}
             variant="contained"
           >
-            Create New Company
+            Create New Product
           </Button>
         )}
       />
@@ -269,7 +269,7 @@ export const CreateNewAccountModal = ({
       <DialogActions sx={{ p: '1.25rem' }}>
         <Button onClick={onClose}>Cancel</Button>
         <Button color="secondary" onClick={handleSubmit} variant="contained">
-          Create New Account
+          Create New Product
         </Button>
       </DialogActions>
     </Dialog>
