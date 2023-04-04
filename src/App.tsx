@@ -4,8 +4,10 @@ import "./App.css";
 import Companies from "./components/Companies";
 import NavSide from "./components/NavSide";
 import Users from "./components/Users";
-import Products from "./components/Products";
-import Blog from "./components/Blog";
+import Make from "./components/Make";
+import Category from "./components/Category";
+import GearBox from "./components/GearBox";
+import VehicleType from "./components/VehicleType";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -17,9 +19,11 @@ function App() {
         <div className="w-full p-5">
           <Routes>
             <Route path="/Companies" element={<Companies />} />
-            <Route path="/Blog" element={<Blog />} />
+            <Route path="/Category" element={<Category />} />
             <Route path="/Users" element={<Users />} />
-            <Route path="/Products" element={<Products />} />
+            <Route path="/Make" element={<Make />} />
+            <Route path="/GearBox" element={<GearBox />} />
+            <Route path="/VehicleType" element={<VehicleType />} />
           </Routes>
         </div>
       </div>

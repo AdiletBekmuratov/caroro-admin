@@ -20,32 +20,28 @@ import {
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 
-export type Company = {
+export type Make = {
   id: number;
   slug: string;
-  email: string;
-  phone: number;
-  address: string;
   name: string;
-  description: string;
   image: string;
   createdAt: string;
   updatedAt: string;
 };
 
-const Companies = () => {
+const Make = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [tableData, setTableData] = useState<Company[]>([]);
+  const [tableData, setTableData] = useState<Make[]>([]);
   const [validationErrors, setValidationErrors] = useState<{
     [cellId: string]: string;
   }>({});
 
-  const handleCreateNewRow = (values: Company) => {
+  const handleCreateNewRow = (values: Make) => {
     tableData.push(values);
     setTableData([...tableData]);
   };
 
-  const handleSaveRowEdits: MaterialReactTableProps<Company>["onEditingRowSave"] =
+  const handleSaveRowEdits: MaterialReactTableProps<Make>["onEditingRowSave"] =
     async ({ exitEditingMode, row, values }) => {
       if (!Object.keys(validationErrors).length) {
         tableData[row.index] = values;
@@ -60,10 +56,10 @@ const Companies = () => {
   };
 
   const handleDeleteRow = useCallback(
-    (row: MRT_Row<Company>) => {
+    (row: MRT_Row<Make>) => {
       if (
         !confirm(
-          `Are you sure you want to delete ${row.getValue("companyName")}`
+          `Are you sure you want to delete ${row.getValue("MakeName")}`
         )
       ) {
         return;
@@ -77,8 +73,8 @@ const Companies = () => {
 
   const getCommonEditTextFieldProps = useCallback(
     (
-      cell: MRT_Cell<Company>
-    ): MRT_ColumnDef<Company>["muiTableBodyCellEditTextFieldProps"] => {
+      cell: MRT_Cell<Make>
+    ): MRT_ColumnDef<Make>["muiTableBodyCellEditTextFieldProps"] => {
       return {
         error: !!validationErrors[cell.id],
         helperText: validationErrors[cell.id],
@@ -108,7 +104,7 @@ const Companies = () => {
     [validationErrors]
   );
 
-  const columns = useMemo<MRT_ColumnDef<Company>[]>(
+  const columns = useMemo<MRT_ColumnDef<Make>[]>(
     () => [
       {
         accessorKey: "id",
@@ -127,42 +123,8 @@ const Companies = () => {
         }),
       },
       {
-        accessorKey: "email",
-        header: "Email",
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-          type: "email",
-        }),
-      },
-
-      {
-        accessorKey: "phone",
-        header: "Phone",
-        size: 80,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-          type: "number",
-        }),
-      },
-      {
-        accessorKey: "address",
-        header: "Address",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
         accessorKey: "name",
         header: "Name",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
-        accessorKey: "description",
-        header: "Description",
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
@@ -234,7 +196,7 @@ const Companies = () => {
             onClick={() => setCreateModalOpen(true)}
             variant="contained"
           >
-            Create New Company
+            Create New Make 
           </Button>
         )}
       />
@@ -249,9 +211,9 @@ const Companies = () => {
 };
 
 interface CreateModalProps {
-  columns: MRT_ColumnDef<Company>[];
+  columns: MRT_ColumnDef<Make>[];
   onClose: () => void;
-  onSubmit: (values: Company) => void;
+  onSubmit: (values: Make) => void;
   open: boolean;
 }
 
@@ -320,4 +282,4 @@ const validateEmail = (email: string) =>
     );
 const validateAge = (age: number) => age >= 18 && age <= 50;
 
-export default Companies;
+export default Make;

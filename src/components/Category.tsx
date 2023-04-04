@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from 'react';
 import MaterialReactTable, {
   MaterialReactTableProps,
   MRT_Cell,
   MRT_ColumnDef,
   MRT_Row,
-} from "material-react-table";
+} from 'material-react-table';
 import {
   Box,
   Button,
@@ -17,35 +17,30 @@ import {
   Stack,
   TextField,
   Tooltip,
-} from "@mui/material";
-import { Delete, Edit } from "@mui/icons-material";
+} from '@mui/material';
+import { Delete, Edit } from '@mui/icons-material';
 
-export type Company = {
+
+export type Category = {
   id: number;
-  slug: string;
-  email: string;
-  phone: number;
-  address: string;
   name: string;
-  description: string;
-  image: string;
   createdAt: string;
   updatedAt: string;
 };
 
-const Companies = () => {
+const Category = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [tableData, setTableData] = useState<Company[]>([]);
+  const [tableData, setTableData] = useState<Category[]>([]);
   const [validationErrors, setValidationErrors] = useState<{
     [cellId: string]: string;
   }>({});
 
-  const handleCreateNewRow = (values: Company) => {
+  const handleCreateNewRow = (values: Category) => {
     tableData.push(values);
     setTableData([...tableData]);
   };
 
-  const handleSaveRowEdits: MaterialReactTableProps<Company>["onEditingRowSave"] =
+  const handleSaveRowEdits: MaterialReactTableProps<Category>['onEditingRowSave'] =
     async ({ exitEditingMode, row, values }) => {
       if (!Object.keys(validationErrors).length) {
         tableData[row.index] = values;
@@ -60,11 +55,9 @@ const Companies = () => {
   };
 
   const handleDeleteRow = useCallback(
-    (row: MRT_Row<Company>) => {
+    (row: MRT_Row<Category>) => {
       if (
-        !confirm(
-          `Are you sure you want to delete ${row.getValue("companyName")}`
-        )
+        !confirm(`Are you sure you want to delete ${row.getValue('firstName')}`)
       ) {
         return;
       }
@@ -72,21 +65,21 @@ const Companies = () => {
       tableData.splice(row.index, 1);
       setTableData([...tableData]);
     },
-    [tableData]
+    [tableData],
   );
 
   const getCommonEditTextFieldProps = useCallback(
     (
-      cell: MRT_Cell<Company>
-    ): MRT_ColumnDef<Company>["muiTableBodyCellEditTextFieldProps"] => {
+      cell: MRT_Cell<Category>,
+    ): MRT_ColumnDef<Category>['muiTableBodyCellEditTextFieldProps'] => {
       return {
         error: !!validationErrors[cell.id],
         helperText: validationErrors[cell.id],
         onBlur: (event) => {
           const isValid =
-            cell.column.id === "email"
+            cell.column.id === 'email'
               ? validateEmail(event.target.value)
-              : cell.column.id === "age"
+              : cell.column.id === 'age'
               ? validateAge(+event.target.value)
               : validateRequired(event.target.value);
           if (!isValid) {
@@ -105,104 +98,54 @@ const Companies = () => {
         },
       };
     },
-    [validationErrors]
+    [validationErrors],
   );
 
-  const columns = useMemo<MRT_ColumnDef<Company>[]>(
+  const columns = useMemo<MRT_ColumnDef<Category>[]>(
     () => [
       {
-        accessorKey: "id",
-        header: "ID",
+        accessorKey: 'id',
+        header: 'ID',
         enableColumnOrdering: false,
         enableEditing: false, //disable editing on this column
         enableSorting: false,
         size: 80,
       },
       {
-        accessorKey: "slug",
-        header: "Slug",
+        accessorKey: 'name',
+        header: 'Name',
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: "email",
-        header: "Email",
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-          type: "email",
-        }),
-      },
-
-      {
-        accessorKey: "phone",
-        header: "Phone",
-        size: 80,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-          type: "number",
-        }),
-      },
-      {
-        accessorKey: "address",
-        header: "Address",
+        accessorKey: 'createdAt',
+        header: 'CreatedAt',
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: "name",
-        header: "Name",
+        accessorKey: 'updatedAt',
+        header: 'UpdatedAt',
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
-      },
-      {
-        accessorKey: "description",
-        header: "Description",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
-        accessorKey: "image",
-        header: "Image",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
-        accessorKey: "createdAt",
-        header: "CreatedAt",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
-        accessorKey: "updatedAt",
-        header: "UpdatedAt",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
+      }
     ],
-    [getCommonEditTextFieldProps]
+    [getCommonEditTextFieldProps],
   );
 
   return (
     <>
       <MaterialReactTable
         displayColumnDefOptions={{
-          "mrt-row-actions": {
+          'mrt-row-actions': {
             muiTableHeadCellProps: {
-              align: "center",
+              align: 'center',
             },
             size: 120,
           },
@@ -215,7 +158,7 @@ const Companies = () => {
         onEditingRowSave={handleSaveRowEdits}
         onEditingRowCancel={handleCancelRowEdits}
         renderRowActions={({ row, table }) => (
-          <Box sx={{ display: "flex", gap: "1rem" }}>
+          <Box sx={{ display: 'flex', gap: '1rem' }}>
             <Tooltip arrow placement="left" title="Edit">
               <IconButton onClick={() => table.setEditingRow(row)}>
                 <Edit />
@@ -234,7 +177,7 @@ const Companies = () => {
             onClick={() => setCreateModalOpen(true)}
             variant="contained"
           >
-            Create New Company
+            Create New Category
           </Button>
         )}
       />
@@ -249,9 +192,9 @@ const Companies = () => {
 };
 
 interface CreateModalProps {
-  columns: MRT_ColumnDef<Company>[];
+  columns: MRT_ColumnDef<Category>[];
   onClose: () => void;
-  onSubmit: (values: Company) => void;
+  onSubmit: (values: Category) => void;
   open: boolean;
 }
 
@@ -264,9 +207,9 @@ export const CreateNewAccountModal = ({
 }: CreateModalProps) => {
   const [values, setValues] = useState<any>(() =>
     columns.reduce((acc, column) => {
-      acc[column.accessorKey ?? ""] = "";
+      acc[column.accessorKey ?? ''] = '';
       return acc;
-    }, {} as any)
+    }, {} as any),
   );
 
   const handleSubmit = () => {
@@ -282,9 +225,9 @@ export const CreateNewAccountModal = ({
         <form onSubmit={(e) => e.preventDefault()}>
           <Stack
             sx={{
-              width: "100%",
-              minWidth: { xs: "300px", sm: "360px", md: "400px" },
-              gap: "1.5rem",
+              width: '100%',
+              minWidth: { xs: '300px', sm: '360px', md: '400px' },
+              gap: '1.5rem',
             }}
           >
             {columns.map((column) => (
@@ -300,7 +243,7 @@ export const CreateNewAccountModal = ({
           </Stack>
         </form>
       </DialogContent>
-      <DialogActions sx={{ p: "1.25rem" }}>
+      <DialogActions sx={{ p: '1.25rem' }}>
         <Button onClick={onClose}>Cancel</Button>
         <Button color="secondary" onClick={handleSubmit} variant="contained">
           Create New Account
@@ -316,8 +259,8 @@ const validateEmail = (email: string) =>
   email
     .toLowerCase()
     .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
     );
 const validateAge = (age: number) => age >= 18 && age <= 50;
 
-export default Companies;
+export default Category;

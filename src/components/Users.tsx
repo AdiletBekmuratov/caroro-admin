@@ -19,30 +19,31 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
-import { data, states } from '../CRUD/makeData'
 
-export type Person = {
-  id: string;
-  firstName: string;
-  lastName: string;
+
+export type Users = {
+  id: number;
   email: string;
-  age: number;
-  state: string;
+  username: string;
+  enabled: boolean;
+  passwordResetToken: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const Users = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [tableData, setTableData] = useState<Person[]>(() => data);
+  const [tableData, setTableData] = useState<Users[]>([]);
   const [validationErrors, setValidationErrors] = useState<{
     [cellId: string]: string;
   }>({});
 
-  const handleCreateNewRow = (values: Person) => {
+  const handleCreateNewRow = (values: Users) => {
     tableData.push(values);
     setTableData([...tableData]);
   };
 
-  const handleSaveRowEdits: MaterialReactTableProps<Person>['onEditingRowSave'] =
+  const handleSaveRowEdits: MaterialReactTableProps<Users>['onEditingRowSave'] =
     async ({ exitEditingMode, row, values }) => {
       if (!Object.keys(validationErrors).length) {
         tableData[row.index] = values;
@@ -57,7 +58,7 @@ const Users = () => {
   };
 
   const handleDeleteRow = useCallback(
-    (row: MRT_Row<Person>) => {
+    (row: MRT_Row<Users>) => {
       if (
         !confirm(`Are you sure you want to delete ${row.getValue('firstName')}`)
       ) {
@@ -72,8 +73,8 @@ const Users = () => {
 
   const getCommonEditTextFieldProps = useCallback(
     (
-      cell: MRT_Cell<Person>,
-    ): MRT_ColumnDef<Person>['muiTableBodyCellEditTextFieldProps'] => {
+      cell: MRT_Cell<Users>,
+    ): MRT_ColumnDef<Users>['muiTableBodyCellEditTextFieldProps'] => {
       return {
         error: !!validationErrors[cell.id],
         helperText: validationErrors[cell.id],
@@ -103,7 +104,7 @@ const Users = () => {
     [validationErrors],
   );
 
-  const columns = useMemo<MRT_ColumnDef<Person>[]>(
+  const columns = useMemo<MRT_ColumnDef<Users>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -114,50 +115,53 @@ const Users = () => {
         size: 80,
       },
       {
-        accessorKey: 'firstName',
-        header: 'First Name',
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
-        accessorKey: 'lastName',
-        header: 'Last Name',
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
         accessorKey: 'email',
         header: 'Email',
+        size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
           type: 'email',
         }),
       },
       {
-        accessorKey: 'age',
-        header: 'Age',
-        size: 80,
+        accessorKey: 'username',
+        header: 'Username',
+        size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
-          type: 'number',
         }),
       },
       {
-        accessorKey: 'state',
-        header: 'State',
-        muiTableBodyCellEditTextFieldProps: {
-          select: true, //change to select for a dropdown
-          children: states.map((state) => (
-            <MenuItem key={state} value={state}>
-              {state}
-            </MenuItem>
-          )),
-        },
+        accessorKey: 'enabled',
+        header: 'Enabled',
+        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+          ...getCommonEditTextFieldProps(cell),
+        }),
       },
+      {
+        accessorKey: 'passwordResetToken',
+        header: 'Password Reset Token',
+        size: 80,
+        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+          ...getCommonEditTextFieldProps(cell),
+        }),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'CreatedAt',
+        size: 80,
+        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+          ...getCommonEditTextFieldProps(cell),
+        }),
+      },
+      {
+        accessorKey: 'updatedAt',
+        header: 'UpdatedAt',
+        size: 80,
+        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
+          ...getCommonEditTextFieldProps(cell),
+        }),
+      }
     ],
     [getCommonEditTextFieldProps],
   );
@@ -215,9 +219,9 @@ const Users = () => {
 };
 
 interface CreateModalProps {
-  columns: MRT_ColumnDef<Person>[];
+  columns: MRT_ColumnDef<Users>[];
   onClose: () => void;
-  onSubmit: (values: Person) => void;
+  onSubmit: (values: Users) => void;
   open: boolean;
 }
 
