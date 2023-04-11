@@ -11,6 +11,9 @@ import VehicleType from "./components/VehicleType";
 import { useAppDispatch, useAppSelector } from "./redux/hooks";
 import { useCheckUser } from "./hooks/useCheckUser";
 import { getMe } from "./redux/slices/auth";
+import Layout from "./components/Layout";
+import SignIn from "./components/SignIn";
+import SignUp from "./components/SignUp";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -26,19 +29,18 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex w-full">
-        <NavSide />
-        <div className="w-full p-5">
-          <Routes>
-            <Route path="/Companies" element={<Companies />} />
-            <Route path="/Category" element={<Category />} />
-            <Route path="/Users" element={<Users />} />
-            <Route path="/Make" element={<Make />} />
-            <Route path="/GearBox" element={<GearBox />} />
-            <Route path="/VehicleType" element={<VehicleType />} />
-          </Routes>
-        </div>
-      </div>
+     <Layout>
+      <Routes>
+          <Route path="/Companies" element={<Companies />} />
+          <Route path="/Category" element={<Category />} />
+          <Route path="/Users" element={<Users />} />
+          <Route path="/Make" element={<Make />} />
+          <Route path="/GearBox" element={<GearBox />} />
+          <Route path="/VehicleType" element={<VehicleType />} />  
+          <Route path="/SignIn" element={<SignIn />} />
+          <Route path="/SignUp" element={<SignUp />} />
+      </Routes>
+      </Layout>
     </BrowserRouter>
   );
 }
