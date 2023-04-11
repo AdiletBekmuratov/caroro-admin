@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Companies from "./components/Companies";
@@ -8,9 +8,21 @@ import Make from "./components/Make";
 import Category from "./components/Category";
 import GearBox from "./components/GearBox";
 import VehicleType from "./components/VehicleType";
+import { useAppDispatch, useAppSelector } from "./redux/hooks";
+import { useCheckUser } from "./hooks/useCheckUser";
+import { getMe } from "./redux/slices/auth";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const dispatch = useAppDispatch();
+  const { user, isLoading } = useAppSelector((state) => state.auth);
+  useCheckUser();
+  useEffect(() => {
+    const getUser = async () => {
+      await dispatch(getMe());
+    };
+
+    getUser();
+  }, []);
 
   return (
     <BrowserRouter>

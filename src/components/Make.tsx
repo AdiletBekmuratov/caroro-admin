@@ -19,6 +19,10 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
+import {
+  useGetCarBrandsQuery,
+  useUpdateCarBrandsMutation,
+} from "@/redux/services/makes.service";
 
 export type Make = {
   id: number;
@@ -30,6 +34,10 @@ export type Make = {
 };
 
 const Make = () => {
+  const { data = [], isLoading } = useGetCarBrandsQuery();
+  const [updateMake, { isLoading: isLoadingMake }] =
+    useUpdateCarBrandsMutation();
+
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState<Make[]>([]);
   const [validationErrors, setValidationErrors] = useState<{
@@ -46,6 +54,7 @@ const Make = () => {
       if (!Object.keys(validationErrors).length) {
         tableData[row.index] = values;
         //send/receive api updates here, then refetch or update local table data for re-render
+        const response = await updateMake(values)
         setTableData([...tableData]);
         exitEditingMode(); //required to exit editing mode and close modal
       }
@@ -58,9 +67,7 @@ const Make = () => {
   const handleDeleteRow = useCallback(
     (row: MRT_Row<Make>) => {
       if (
-        !confirm(
-          `Are you sure you want to delete ${row.getValue("MakeName")}`
-        )
+        !confirm(`Are you sure you want to delete ${row.getValue("MakeName")}`)
       ) {
         return;
       }
@@ -196,7 +203,7 @@ const Make = () => {
             onClick={() => setCreateModalOpen(true)}
             variant="contained"
           >
-            Create New Make 
+            Create New Make
           </Button>
         )}
       />
