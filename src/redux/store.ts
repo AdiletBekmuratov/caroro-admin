@@ -1,9 +1,7 @@
-import authReducer from './slices/auth';
+import authReducer from "./slices/auth";
 
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { baseApi } from './services/baseApi';
-import { errorLogger } from './middlewares/errorLogger';
-
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { baseApi } from "./services/baseApi";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -12,11 +10,8 @@ const rootReducer = combineReducers({
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware =>
-    getDefaultMiddleware().concat(
-      baseApi.middleware,
-      errorLogger,
-    ),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(baseApi.middleware),
   devTools: true,
 });
 

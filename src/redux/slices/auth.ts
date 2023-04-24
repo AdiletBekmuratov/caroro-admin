@@ -1,70 +1,73 @@
-import { IAuthState, ILoginForm, IUser } from '@/types';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
-import authService from '../services/auth.service';
+import { IAuthState, LoginFormData, IUser } from "@/types";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import authService from "../services/auth.service";
 
 const initialState: IAuthState = {
   user: null,
   isError: false,
   isSuccess: false,
   isLoading: true,
-  message: ''
+  message: "",
 };
 
-export const getMe = createAsyncThunk<IUser, undefined, { rejectValue: string }>(
-  'auth/me',
-  async (_, thunkAPI) => {
-    try {
-      return await authService.getMe();
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const message = error.message || error.toString();
-        return thunkAPI.rejectWithValue(message);
-      }
+export const getMe = createAsyncThunk<
+  IUser,
+  undefined,
+  { rejectValue: string }
+>("auth/me", async (_, thunkAPI) => {
+  try {
+    return await authService.getMe();
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
     }
   }
-);
+});
 
 // Login user
-export const login = createAsyncThunk<IUser, ILoginForm, { rejectValue: string }>(
-  'auth/login',
-  async (user, thunkAPI) => {
-    try {
-      await authService.login(user);
-      return authService.getMe();
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const message = error.message || error.toString();
-        return thunkAPI.rejectWithValue(message);
-      }
+export const login = createAsyncThunk<
+  IUser,
+  LoginFormData,
+  { rejectValue: string }
+>("auth/login", async (user, thunkAPI) => {
+  try {
+    await authService.login(user);
+    return authService.getMe();
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
     }
   }
-);
+});
 
-export const logout = createAsyncThunk<{ message: string }, undefined, { rejectValue: string }>(
-  'auth/logout',
-  async (_, thunkAPI) => {
-    try {
-      return await authService.logout();
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const message = error.message || error.toString();
-        return thunkAPI.rejectWithValue(message);
-      }
+export const logout = createAsyncThunk<
+  { message: string },
+  undefined,
+  { rejectValue: string }
+>("auth/logout", async (_, thunkAPI) => {
+  try {
+    return await authService.logout();
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
     }
   }
-);
+});
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     reset: (state) => {
       state.isLoading = false;
       state.isSuccess = false;
       state.isError = false;
-      state.message = '';
-    }
+      state.message = "";
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -114,7 +117,7 @@ export const authSlice = createSlice({
           state.message = action.payload;
         }
       });
-  }
+  },
 });
 
 export const { reset } = authSlice.actions;

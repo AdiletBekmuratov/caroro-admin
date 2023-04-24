@@ -1,10 +1,9 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import MaterialReactTable, {
-  MaterialReactTableProps,
-  MRT_Cell,
-  MRT_ColumnDef,
-  MRT_Row,
-} from 'material-react-table';
+import { useCreateCategoryMutation, useDeleteCategoryMutation, useGetCategoriesQuery, useUpdateCategoryMutation } from "@/redux/services/category.service";
+import { useCreateVehicleTypeMutation, useDeleteVehicleTypeMutation, useGetVehicleTypeQuery, useUpdateVehicleTypeMutation } from "@/redux/services/vehicleType.service";
+import { CategoryFormData, CategorySchema } from "@/types/category.types";
+import { VehicleTypeFormData, VehicleTypeSchema } from "@/types/vehicleType.types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Delete, Edit } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -13,38 +12,49 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  MenuItem,
   Stack,
   TextField,
-  Tooltip,
-} from '@mui/material';
-import { Delete, Edit } from '@mui/icons-material';
+  Tooltip
+} from "@mui/material";
+import MaterialReactTable, {
+  MRT_Cell,
+  MRT_ColumnDef,
+  MRT_Row,
+  MaterialReactTableProps,
+} from "material-react-table";
+import { useCallback, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
-export type VehicleType   = {
+export type VehicleType = {
   id: number;
   name: string;
   createdAt: string;
   updatedAt: string;
 };
 
-const Companies = () => {
+const VehicleType = () => {
+  const { data = [] } = useGetVehicleTypeQuery();
+  const [deleteMutation] = useDeleteVehicleTypeMutation();
+  const [createMutation] = useCreateVehicleTypeMutation();
+  const [updateMutation] = useUpdateVehicleTypeMutation();
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [tableData, setTableData] = useState<VehicleType []>([]);
   const [validationErrors, setValidationErrors] = useState<{
     [cellId: string]: string;
   }>({});
 
-  const handleCreateNewRow = (values: VehicleType ) => {
-    tableData.push(values);
-    setTableData([...tableData]);
+  const handleCreateNewRow = (values: VehicleTypeFormData) => {
+    // tableData.push(values);
+    // setTableData([...tableData]);
+    createMutation(values);
   };
 
-  const handleSaveRowEdits: MaterialReactTableProps<VehicleType >['onEditingRowSave'] =
+  const handleSaveRowEdits: MaterialReactTableProps<VehicleType>["onEditingRowSave"] =
     async ({ exitEditingMode, row, values }) => {
       if (!Object.keys(validationErrors).length) {
-        tableData[row.index] = values;
-        //send/receive api updates here, then refetch or update local table data for re-render
-        setTableData([...tableData]);
+        // tableData[row.index] = values;
+        // //send/receive api updates here, then refetch or update local table data for re-render
+        // setTableData([...tableData]);
+        updateMutation({ id: row.getValue("id"), data: values });
         exitEditingMode(); //required to exit editing mode and close modal
       }
     };
@@ -54,33 +64,27 @@ const Companies = () => {
   };
 
   const handleDeleteRow = useCallback(
-    (row: MRT_Row<VehicleType >) => {
-      if (
-        !confirm(`Are you sure you want to delete ${row.getValue('firstName')}`)
-      ) {
+    (row: MRT_Row<VehicleType>) => {
+      if (!confirm(`Are you sure you want to delete ${row.getValue("name")}`)) {
         return;
       }
       //send api delete request here, then refetch or update local table data for re-render
-      tableData.splice(row.index, 1);
-      setTableData([...tableData]);
+      // tableData.splice(row.index, 1);
+      // setTableData([...tableData]);
+      deleteMutation(row.getValue("id"));
     },
-    [tableData],
+    [data]
   );
 
   const getCommonEditTextFieldProps = useCallback(
     (
-      cell: MRT_Cell<VehicleType >,
-    ): MRT_ColumnDef<VehicleType >['muiTableBodyCellEditTextFieldProps'] => {
+      cell: MRT_Cell<VehicleType>
+    ): MRT_ColumnDef<VehicleType>["muiTableBodyCellEditTextFieldProps"] => {
       return {
         error: !!validationErrors[cell.id],
         helperText: validationErrors[cell.id],
         onBlur: (event) => {
-          const isValid =
-            cell.column.id === 'email'
-              ? validateEmail(event.target.value)
-              : cell.column.id === 'age'
-              ? validateAge(+event.target.value)
-              : validateRequired(event.target.value);
+          const isValid = validateRequired(event.target.value);
           if (!isValid) {
             //set validation error for cell if invalid
             setValidationErrors({
@@ -97,66 +101,63 @@ const Companies = () => {
         },
       };
     },
-    [validationErrors],
+    [validationErrors]
   );
 
-  const columns = useMemo<MRT_ColumnDef<VehicleType >[]>(
+  const columns = useMemo<MRT_ColumnDef<VehicleType>[]>(
     () => [
       {
-        accessorKey: 'id',
-        header: 'ID',
+        accessorKey: "id",
+        header: "ID",
         enableColumnOrdering: false,
-        enableEditing: false, //disable editing on this column
-        enableSorting: false,
+        enableEditing: false,
+        enableSorting: true,
         size: 80,
       },
       {
-        accessorKey: 'name',
-        header: 'Name',
+        accessorKey: "name",
+        header: "Name",
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: 'createdAt',
-        header: 'CreatedAt',
+        accessorKey: "createdAt",
+        header: "CreatedAt",
         size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
+        enableEditing: false,
       },
       {
-        accessorKey: 'updatedAt',
-        header: 'UpdatedAt',
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      }
+        accessorKey: "updatedAt",
+        header: "UpdatedAt",
+        size: 140,
+        enableEditing: false,
+      },
     ],
-    [getCommonEditTextFieldProps],
+    [getCommonEditTextFieldProps]
   );
 
   return (
     <>
       <MaterialReactTable
         displayColumnDefOptions={{
-          'mrt-row-actions': {
+          "mrt-row-actions": {
             muiTableHeadCellProps: {
-              align: 'center',
+              align: "center",
             },
             size: 120,
           },
         }}
         columns={columns}
-        data={tableData}
+        data={data}
         editingMode="modal" //default
         enableColumnOrdering
         enableEditing
         onEditingRowSave={handleSaveRowEdits}
         onEditingRowCancel={handleCancelRowEdits}
         renderRowActions={({ row, table }) => (
-          <Box sx={{ display: 'flex', gap: '1rem' }}>
+          <Box sx={{ display: "flex", gap: "1rem" }}>
             <Tooltip arrow placement="left" title="Edit">
               <IconButton onClick={() => table.setEditingRow(row)}>
                 <Edit />
@@ -180,7 +181,6 @@ const Companies = () => {
         )}
       />
       <CreateNewAccountModal
-        columns={columns}
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateNewRow}
@@ -190,75 +190,76 @@ const Companies = () => {
 };
 
 interface CreateModalProps {
-  columns: MRT_ColumnDef<VehicleType >[];
   onClose: () => void;
-  onSubmit: (values: VehicleType ) => void;
+  onSubmit: (values: VehicleTypeFormData) => void;
   open: boolean;
 }
 
 //example of creating a mui dialog modal for creating new rows
 export const CreateNewAccountModal = ({
   open,
-  columns,
   onClose,
   onSubmit,
 }: CreateModalProps) => {
-  const [values, setValues] = useState<any>(() =>
-    columns.reduce((acc, column) => {
-      acc[column.accessorKey ?? ''] = '';
-      return acc;
-    }, {} as any),
-  );
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<VehicleTypeFormData>({
+    mode: "onTouched",
+    resolver: zodResolver(VehicleTypeSchema),
+    defaultValues: {
+      name: ""
+    },
+  });
 
-  const handleSubmit = () => {
+  const handleFormSubmit = handleSubmit((values) => {
     //put your validation logic here
     onSubmit(values);
+    reset();
     onClose();
-  };
+  });
 
   return (
     <Dialog open={open}>
-      <DialogTitle textAlign="center">Create New Account</DialogTitle>
+      <DialogTitle textAlign="center">Create New VehicleType</DialogTitle>
       <DialogContent>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <Box component="form" onSubmit={handleFormSubmit} noValidate>
           <Stack
             sx={{
-              width: '100%',
-              minWidth: { xs: '300px', sm: '360px', md: '400px' },
-              gap: '1.5rem',
+              width: "100%",
+              minWidth: { xs: "300px", sm: "360px", md: "400px" },
+              gap: "1.5rem",
             }}
           >
-            {columns.map((column) => (
-              <TextField
-                key={column.accessorKey}
-                label={column.header}
-                name={column.accessorKey}
-                onChange={(e) =>
-                  setValues({ ...values, [e.target.name]: e.target.value })
-                }
-              />
-            ))}
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Название"
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                />
+              )}
+            />
           </Stack>
-        </form>
+          <DialogActions sx={{ p: "1.25rem" }}>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button color="secondary" variant="contained" type="submit">
+              Create New VehicleType
+            </Button>
+          </DialogActions>
+        </Box>
       </DialogContent>
-      <DialogActions sx={{ p: '1.25rem' }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button color="secondary" onClick={handleSubmit} variant="contained">
-          Create New Product
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
 const validateRequired = (value: string) => !!value.length;
-const validateEmail = (email: string) =>
-  !!email.length &&
-  email
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    );
-const validateAge = (age: number) => age >= 18 && age <= 50;
 
-export default Companies;
+export default VehicleType;

@@ -1,5 +1,5 @@
 import axiosInstance from '@/config/axios';
-import { ILoginForm } from '@/types';
+import { LoginFormData } from '@/types';
 
 const getMe = async () => {
   const response = await axiosInstance.get('/users/me');
@@ -7,7 +7,7 @@ const getMe = async () => {
 };
 
 // Login user
-const login = async (userData: ILoginForm) => {
+const login = async (userData: LoginFormData) => {
   const response = await axiosInstance.post('/auth/login', userData);
   return response.data;
 };

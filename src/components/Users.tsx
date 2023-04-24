@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from "react";
 import MaterialReactTable, {
   MaterialReactTableProps,
   MRT_Cell,
   MRT_ColumnDef,
   MRT_Row,
-} from 'material-react-table';
+} from "material-react-table";
 import {
   Box,
   Button,
@@ -17,39 +17,57 @@ import {
   Stack,
   TextField,
   Tooltip,
-} from '@mui/material';
-import { Delete, Edit } from '@mui/icons-material';
-
+} from "@mui/material";
+import { Delete, Edit } from "@mui/icons-material";
+import {
+  useCreateUserMutation,
+  useDeleteUserMutation,
+  useGetUsersQuery,
+  useUpdateUserMutation,
+} from "@/redux/services/user.service";
+import { UserFormData, UserSchema } from "@/types/users.types";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export type Users = {
   id: number;
   email: string;
-  username: string;
+  firstname: string;
+  lastname: string;
+  phone: string;
   enabled: boolean;
   passwordResetToken: string;
   createdAt: string;
   updatedAt: string;
+  role: string;
 };
 
 const Users = () => {
+  const { data = [] } = useGetUsersQuery();
+  const [deleteMutation] = useDeleteUserMutation();
+  const [createMutation] = useCreateUserMutation();
+  const [updateMutation] = useUpdateUserMutation();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState<Users[]>([]);
   const [validationErrors, setValidationErrors] = useState<{
     [cellId: string]: string;
   }>({});
 
-  const handleCreateNewRow = (values: Users) => {
-    tableData.push(values);
-    setTableData([...tableData]);
+  const handleCreateNewRow = (values: UserFormData) => {
+    // tableData.push(values);
+    // setTableData([...tableData]);
+    createMutation(values);
   };
 
-  const handleSaveRowEdits: MaterialReactTableProps<Users>['onEditingRowSave'] =
+  const handleSaveRowEdits: MaterialReactTableProps<Users>["onEditingRowSave"] =
     async ({ exitEditingMode, row, values }) => {
       if (!Object.keys(validationErrors).length) {
         tableData[row.index] = values;
         //send/receive api updates here, then refetch or update local table data for re-render
-        setTableData([...tableData]);
-        exitEditingMode(); //required to exit editing mode and close modal
+        // setTableData([...tableData]);
+        // exitEditingMode(); //required to exit editing mode and close modal
+        updateMutation({ id: row.getValue("id"), data: values });
+        exitEditingMode();
       }
     };
 
@@ -60,31 +78,27 @@ const Users = () => {
   const handleDeleteRow = useCallback(
     (row: MRT_Row<Users>) => {
       if (
-        !confirm(`Are you sure you want to delete ${row.getValue('firstName')}`)
+        !confirm(`Are you sure you want to delete ${row.getValue("firstName")}`)
       ) {
         return;
       }
       //send api delete request here, then refetch or update local table data for re-render
-      tableData.splice(row.index, 1);
-      setTableData([...tableData]);
+      // tableData.splice(row.index, 1);
+      // setTableData([...tableData]);
+      deleteMutation(row.getValue("id"));
     },
-    [tableData],
+    [data]
   );
 
   const getCommonEditTextFieldProps = useCallback(
     (
-      cell: MRT_Cell<Users>,
-    ): MRT_ColumnDef<Users>['muiTableBodyCellEditTextFieldProps'] => {
+      cell: MRT_Cell<Users>
+    ): MRT_ColumnDef<Users>["muiTableBodyCellEditTextFieldProps"] => {
       return {
         error: !!validationErrors[cell.id],
         helperText: validationErrors[cell.id],
         onBlur: (event) => {
-          const isValid =
-            cell.column.id === 'email'
-              ? validateEmail(event.target.value)
-              : cell.column.id === 'age'
-              ? validateAge(+event.target.value)
-              : validateRequired(event.target.value);
+          const isValid = validateRequired(event.target.value);
           if (!isValid) {
             //set validation error for cell if invalid
             setValidationErrors({
@@ -101,91 +115,96 @@ const Users = () => {
         },
       };
     },
-    [validationErrors],
+    [validationErrors]
   );
 
   const columns = useMemo<MRT_ColumnDef<Users>[]>(
     () => [
       {
-        accessorKey: 'id',
-        header: 'ID',
+        accessorKey: "id",
+        header: "ID",
         enableColumnOrdering: false,
-        enableEditing: false, //disable editing on this column
-        enableSorting: false,
+        enableEditing: false,
+        enableSorting: true,
         size: 80,
       },
       {
-        accessorKey: 'email',
-        header: 'Email',
+        accessorKey: "email",
+        header: "Email",
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
-          type: 'email',
+          type: "email",
         }),
       },
       {
-        accessorKey: 'username',
-        header: 'Username',
+        accessorKey: "firstname",
+        header: "Firstname",
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: 'enabled',
-        header: 'Enabled',
+        accessorKey: "lastname",
+        header: "Lastname",
+        size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: 'passwordResetToken',
-        header: 'Password Reset Token',
-        size: 80,
+        accessorKey: "phone",
+        header: "Phone",
+        size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: 'createdAt',
-        header: 'CreatedAt',
-        size: 80,
+        accessorKey: "enabled",
+        header: "Enabled",
+        enableEditing: false,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: 'updatedAt',
-        header: 'UpdatedAt',
-        size: 80,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      }
+        accessorKey: "createdAt",
+        header: "CreatedAt",
+        size: 140,
+        enableEditing: false,
+      },
+      {
+        accessorKey: "updatedAt",
+        header: "UpdatedAt",
+        size: 140,
+        enableEditing: false,
+      },
     ],
-    [getCommonEditTextFieldProps],
+    [getCommonEditTextFieldProps]
   );
 
   return (
     <>
       <MaterialReactTable
         displayColumnDefOptions={{
-          'mrt-row-actions': {
+          "mrt-row-actions": {
             muiTableHeadCellProps: {
-              align: 'center',
+              align: "center",
             },
             size: 120,
           },
         }}
         columns={columns}
-        data={tableData}
+        data={data}
         editingMode="modal" //default
         enableColumnOrdering
         enableEditing
         onEditingRowSave={handleSaveRowEdits}
         onEditingRowCancel={handleCancelRowEdits}
         renderRowActions={({ row, table }) => (
-          <Box sx={{ display: 'flex', gap: '1rem' }}>
+          <Box sx={{ display: "flex", gap: "1rem" }}>
             <Tooltip arrow placement="left" title="Edit">
               <IconButton onClick={() => table.setEditingRow(row)}>
                 <Edit />
@@ -209,7 +228,6 @@ const Users = () => {
         )}
       />
       <CreateNewAccountModal
-        columns={columns}
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateNewRow}
@@ -219,75 +237,134 @@ const Users = () => {
 };
 
 interface CreateModalProps {
-  columns: MRT_ColumnDef<Users>[];
   onClose: () => void;
-  onSubmit: (values: Users) => void;
+  onSubmit: (values: UserFormData) => void;
   open: boolean;
 }
 
 //example of creating a mui dialog modal for creating new rows
 export const CreateNewAccountModal = ({
   open,
-  columns,
   onClose,
   onSubmit,
 }: CreateModalProps) => {
-  const [values, setValues] = useState<any>(() =>
-    columns.reduce((acc, column) => {
-      acc[column.accessorKey ?? ''] = '';
-      return acc;
-    }, {} as any),
-  );
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    mode: "onTouched",
+    resolver: zodResolver(UserSchema),
+    defaultValues: {
+      firstname: "",
+      lastname: "",
+      phone: "",
+    },
+  });
 
-  const handleSubmit = () => {
+  const handleFormSubmit = handleSubmit((values) => {
     //put your validation logic here
     onSubmit(values);
+    reset();
     onClose();
-  };
+  });
 
   return (
     <Dialog open={open}>
-      <DialogTitle textAlign="center">Create New Account</DialogTitle>
+      <DialogTitle textAlign="center">Create New User</DialogTitle>
       <DialogContent>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <Box component="form" onSubmit={handleFormSubmit} noValidate>
           <Stack
             sx={{
-              width: '100%',
-              minWidth: { xs: '300px', sm: '360px', md: '400px' },
-              gap: '1.5rem',
+              width: "100%",
+              minWidth: { xs: "300px", sm: "360px", md: "400px" },
+              gap: "1.5rem",
             }}
           >
-            {columns.map((column) => (
-              <TextField
-                key={column.accessorKey}
-                label={column.header}
-                name={column.accessorKey}
-                onChange={(e) =>
-                  setValues({ ...values, [e.target.name]: e.target.value })
-                }
-              />
-            ))}
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Email"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                />
+              )}
+            />
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Пароль"
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                />
+              )}
+            />
+            <Controller
+              name="firstname"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Имя"
+                  error={!!errors.firstname}
+                  helperText={errors.firstname?.message}
+                />
+              )}
+            />
+            <Controller
+              name="lastname"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Фамилия"
+                  error={!!errors.lastname}
+                  helperText={errors.lastname?.message}
+                />
+              )}
+            />
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Номер телефона"
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
+                />
+              )}
+            />
           </Stack>
-        </form>
+          <DialogActions sx={{ p: "1.25rem" }}>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button color="secondary" variant="contained" type="submit">
+              Create New User
+            </Button>
+          </DialogActions>
+        </Box>
       </DialogContent>
-      <DialogActions sx={{ p: '1.25rem' }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button color="secondary" onClick={handleSubmit} variant="contained">
-          Create New Account
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
 const validateRequired = (value: string) => !!value.length;
-const validateEmail = (email: string) =>
-  !!email.length &&
-  email
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    );
-const validateAge = (age: number) => age >= 18 && age <= 50;
 
 export default Users;

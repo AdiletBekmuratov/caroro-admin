@@ -1,10 +1,13 @@
-import React, { useCallback, useMemo, useState } from "react";
-import MaterialReactTable, {
-  MaterialReactTableProps,
-  MRT_Cell,
-  MRT_ColumnDef,
-  MRT_Row,
-} from "material-react-table";
+import {
+  useCreateCompanyMutation,
+  useDeleteCompanyMutation,
+  useGetCompaniesQuery,
+  useUpdateCompanyMutation,
+} from "@/redux/services/company.service";
+import { CompanyFormData, CompanySchema } from "@/types/companies.types";
+import { GearBoxFormData } from "@/types/gearboxes.types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Delete, Edit } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -13,44 +16,53 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  MenuItem,
   Stack,
   TextField,
   Tooltip,
 } from "@mui/material";
-import { Delete, Edit } from "@mui/icons-material";
+import MaterialReactTable, {
+  MRT_Cell,
+  MRT_ColumnDef,
+  MRT_Row,
+  MaterialReactTableProps,
+} from "material-react-table";
+import { useCallback, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 export type Company = {
   id: number;
-  slug: string;
   email: string;
   phone: number;
   address: string;
   name: string;
   description: string;
-  image: string;
   createdAt: string;
   updatedAt: string;
 };
 
-const Companies = () => {
+const Company = () => {
+  const { data } = useGetCompaniesQuery();
+  const [deleteMutation] = useDeleteCompanyMutation();
+  const [createMutation] = useCreateCompanyMutation();
+  const [updateMutation] = useUpdateCompanyMutation();
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [tableData, setTableData] = useState<Company[]>([]);
   const [validationErrors, setValidationErrors] = useState<{
     [cellId: string]: string;
   }>({});
 
-  const handleCreateNewRow = (values: Company) => {
-    tableData.push(values);
-    setTableData([...tableData]);
+  const handleCreateNewRow = (values: CompanyFormData) => {
+    // tableData.push(values);
+    // setTableData([...tableData]);
+    createMutation(values);
   };
 
   const handleSaveRowEdits: MaterialReactTableProps<Company>["onEditingRowSave"] =
     async ({ exitEditingMode, row, values }) => {
       if (!Object.keys(validationErrors).length) {
-        tableData[row.index] = values;
-        //send/receive api updates here, then refetch or update local table data for re-render
-        setTableData([...tableData]);
+        // tableData[row.index] = values;
+        // //send/receive api updates here, then refetch or update local table data for re-render
+        // setTableData([...tableData]);
+        updateMutation({ id: row.getValue("id"), data: values });
         exitEditingMode(); //required to exit editing mode and close modal
       }
     };
@@ -61,18 +73,15 @@ const Companies = () => {
 
   const handleDeleteRow = useCallback(
     (row: MRT_Row<Company>) => {
-      if (
-        !confirm(
-          `Are you sure you want to delete ${row.getValue("companyName")}`
-        )
-      ) {
+      if (!confirm(`Are you sure you want to delete ${row.getValue("name")}`)) {
         return;
       }
       //send api delete request here, then refetch or update local table data for re-render
-      tableData.splice(row.index, 1);
-      setTableData([...tableData]);
+      // tableData.splice(row.index, 1);
+      // setTableData([...tableData]);
+      deleteMutation(row.getValue("id"));
     },
-    [tableData]
+    [data]
   );
 
   const getCommonEditTextFieldProps = useCallback(
@@ -83,12 +92,7 @@ const Companies = () => {
         error: !!validationErrors[cell.id],
         helperText: validationErrors[cell.id],
         onBlur: (event) => {
-          const isValid =
-            cell.column.id === "email"
-              ? validateEmail(event.target.value)
-              : cell.column.id === "age"
-              ? validateAge(+event.target.value)
-              : validateRequired(event.target.value);
+          const isValid = validateRequired(event.target.value);
           if (!isValid) {
             //set validation error for cell if invalid
             setValidationErrors({
@@ -114,47 +118,30 @@ const Companies = () => {
         accessorKey: "id",
         header: "ID",
         enableColumnOrdering: false,
-        enableEditing: false, //disable editing on this column
-        enableSorting: false,
+        enableEditing: false,
+        enableSorting: true,
         size: 80,
-      },
-      {
-        accessorKey: "slug",
-        header: "Slug",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
       },
       {
         accessorKey: "email",
         header: "Email",
+        size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
           type: "email",
         }),
       },
-
       {
         accessorKey: "phone",
         header: "Phone",
-        size: 80,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-          type: "number",
-        }),
-      },
-      {
-        accessorKey: "address",
-        header: "Address",
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
       },
       {
-        accessorKey: "name",
-        header: "Name",
+        accessorKey: "address",
+        header: "Address",
         size: 140,
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
@@ -169,28 +156,16 @@ const Companies = () => {
         }),
       },
       {
-        accessorKey: "image",
-        header: "Image",
-        size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
-      },
-      {
         accessorKey: "createdAt",
         header: "CreatedAt",
         size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
+        enableEditing: false,
       },
       {
         accessorKey: "updatedAt",
         header: "UpdatedAt",
         size: 140,
-        muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
-          ...getCommonEditTextFieldProps(cell),
-        }),
+        enableEditing: false,
       },
     ],
     [getCommonEditTextFieldProps]
@@ -208,7 +183,7 @@ const Companies = () => {
           },
         }}
         columns={columns}
-        data={tableData}
+        data={data?.data ?? []}
         editingMode="modal" //default
         enableColumnOrdering
         enableEditing
@@ -239,7 +214,6 @@ const Companies = () => {
         )}
       />
       <CreateNewAccountModal
-        columns={columns}
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateNewRow}
@@ -249,37 +223,46 @@ const Companies = () => {
 };
 
 interface CreateModalProps {
-  columns: MRT_ColumnDef<Company>[];
   onClose: () => void;
-  onSubmit: (values: Company) => void;
+  onSubmit: (values: CompanyFormData) => void;
   open: boolean;
 }
 
 //example of creating a mui dialog modal for creating new rows
 export const CreateNewAccountModal = ({
   open,
-  columns,
   onClose,
   onSubmit,
 }: CreateModalProps) => {
-  const [values, setValues] = useState<any>(() =>
-    columns.reduce((acc, column) => {
-      acc[column.accessorKey ?? ""] = "";
-      return acc;
-    }, {} as any)
-  );
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<CompanyFormData>({
+    mode: "onTouched",
+    resolver: zodResolver(CompanySchema),
+    defaultValues: {
+      email: "",
+      phone: "",
+      address: "",
+      name: "",
+      description: "",
+    },
+  });
 
-  const handleSubmit = () => {
+  const handleFormSubmit = handleSubmit((values) => {
     //put your validation logic here
     onSubmit(values);
+    reset();
     onClose();
-  };
+  });
 
   return (
     <Dialog open={open}>
-      <DialogTitle textAlign="center">Create New Account</DialogTitle>
+      <DialogTitle textAlign="center">Create New Company</DialogTitle>
       <DialogContent>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <Box component="form" onSubmit={handleFormSubmit} noValidate>
           <Stack
             sx={{
               width: "100%",
@@ -287,37 +270,89 @@ export const CreateNewAccountModal = ({
               gap: "1.5rem",
             }}
           >
-            {columns.map((column) => (
-              <TextField
-                key={column.accessorKey}
-                label={column.header}
-                name={column.accessorKey}
-                onChange={(e) =>
-                  setValues({ ...values, [e.target.name]: e.target.value })
-                }
-              />
-            ))}
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Email"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                />
+              )}
+            />
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Номер телефона"
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
+                />
+              )}
+            />
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Адрес"
+                  error={!!errors.address}
+                  helperText={errors.address?.message}
+                />
+              )}
+            />
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Название"
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                />
+              )}
+            />
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="normal"
+                  fullWidth
+                  label="Описание"
+                  error={!!errors.description}
+                  helperText={errors.description?.message}
+                />
+              )}
+            />
           </Stack>
-        </form>
+          <DialogActions sx={{ p: "1.25rem" }}>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button color="secondary" variant="contained" type="submit">
+              Create New Company
+            </Button>
+          </DialogActions>
+        </Box>
       </DialogContent>
-      <DialogActions sx={{ p: "1.25rem" }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button color="secondary" onClick={handleSubmit} variant="contained">
-          Create New Account
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
 const validateRequired = (value: string) => !!value.length;
-const validateEmail = (email: string) =>
-  !!email.length &&
-  email
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
-const validateAge = (age: number) => age >= 18 && age <= 50;
 
-export default Companies;
+export default Company;
