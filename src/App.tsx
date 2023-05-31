@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import "./App.css";
-import Category from "./components/Category";
+// import Category from "./components/Category";
 import Companies from "./components/Companies";
 import GearBox from "./components/GearBox";
 import Layout from "./components/Layout";
@@ -30,7 +30,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/companies" element={<Companies />} />
-            <Route path="/category" element={<Category />} />
+            {/* <Route path="/category" element={<Category />} /> */}
             <Route path="/users" element={<Users />} />
             <Route path="/make" element={<Make />} />
             <Route path="/gearBox" element={<GearBox />} />

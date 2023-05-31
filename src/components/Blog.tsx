@@ -142,6 +142,8 @@ const Blog = () => {
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
+        Cell: ({ cell: { getValue } }) =>
+          getValue<string>().slice(0, 30) + "...",
       },
       {
         accessorKey: "createdAt",
@@ -278,6 +280,8 @@ export const CreateNewAccountModal = ({
                   {...field}
                   margin="normal"
                   fullWidth
+                  multiline
+                  rows={4}
                   label="Основная часть статьи"
                   error={!!errors.body}
                   helperText={errors.body?.message}

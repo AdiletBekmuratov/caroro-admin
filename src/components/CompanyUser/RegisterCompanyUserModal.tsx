@@ -77,7 +77,6 @@ const RegisterCompanyUserModal = ({ open, onClose, onSubmit }: ModalProps) => {
               gap: "1.5rem",
             }}
           >
-            {JSON.stringify(errors, null, 2)}
             <Controller
               name="email"
               control={control}

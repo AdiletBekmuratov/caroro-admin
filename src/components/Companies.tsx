@@ -154,6 +154,8 @@ const Company = () => {
         muiTableBodyCellEditTextFieldProps: ({ cell }) => ({
           ...getCommonEditTextFieldProps(cell),
         }),
+        Cell: ({ cell: { getValue } }) =>
+          getValue<string>().slice(0, 30) + "...",
       },
       {
         accessorKey: "createdAt",
